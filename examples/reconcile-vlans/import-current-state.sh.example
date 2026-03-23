@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+EXAMPLE_DIR="$ROOT_DIR/examples/reconcile-vlans"
+CLI_CONFIG_FILE="$ROOT_DIR/.opentofu/reconcile-vlans.tfrc"
+
+if [[ ! -f "$CLI_CONFIG_FILE" ]]; then
+  echo "missing OpenTofu CLI config: $CLI_CONFIG_FILE" >&2
+  echo "run ./run.sh first to build the local provider mirror and initialize the example" >&2
+  exit 1
+fi
+
+echo "Edit this script for your own switch inventory before running it."
+echo "Example:"
+echo "  TF_CLI_CONFIG_FILE=\"$CLI_CONFIG_FILE\" tofu -chdir=\"$EXAMPLE_DIR\" import tplinkeasysmart_vlan_8021q.vlan_1 1"
+echo "  TF_CLI_CONFIG_FILE=\"$CLI_CONFIG_FILE\" tofu -chdir=\"$EXAMPLE_DIR\" import tplinkeasysmart_port_pvid.port_1 1"

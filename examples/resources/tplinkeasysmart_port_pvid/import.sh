@@ -1,0 +1,1 @@
+terraform import tplinkeasysmart_port_pvid.port2 2

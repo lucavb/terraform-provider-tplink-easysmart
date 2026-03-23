@@ -1,0 +1,14 @@
+# Copy this file to managed.tf and replace the sample values with the VLANs and
+# PVIDs discovered on your own switch.
+
+resource "tplinkeasysmart_vlan_8021q" "vlan_1" {
+  vlan_id        = 1
+  name           = "Default"
+  tagged_ports   = []
+  untagged_ports = [1, 2, 3, 4, 5, 6, 7, 8]
+}
+
+resource "tplinkeasysmart_port_pvid" "port_1" {
+  port_id = 1
+  pvid    = 1
+}
