@@ -13,7 +13,6 @@ var (
 	errVariableNotFound = "variable %q not found"
 	keyPattern          = regexp.MustCompile(`([{,]\s*)([A-Za-z_][A-Za-z0-9_]*)(\s*:)`)
 	hexPattern          = regexp.MustCompile(`0x[0-9A-Fa-f]+`)
-	intPatternTemplate  = `var\s+%s\s*=\s*(-?[0-9]+)\s*;`
 )
 
 func ExtractObject(source string, name string) (map[string]any, error) {
@@ -53,13 +52,12 @@ func ExtractArray(source string, name string) ([]any, error) {
 }
 
 func ExtractInt(source string, name string) (int, error) {
-	pattern := regexp.MustCompile(fmt.Sprintf(intPatternTemplate, regexp.QuoteMeta(name)))
-	matches := pattern.FindStringSubmatch(source)
-	if len(matches) != 2 {
-		return 0, fmt.Errorf(errVariableNotFound, name)
+	literal, err := extractAssignedLiteral(source, name)
+	if err != nil {
+		return 0, err
 	}
 
-	value, err := strconv.Atoi(matches[1])
+	value, err := strconv.Atoi(strings.TrimSpace(literal))
 	if err != nil {
 		return 0, fmt.Errorf("parse int %q: %w", name, err)
 	}
@@ -100,7 +98,7 @@ func extractAssignedLiteral(source string, name string) (string, error) {
 		return literal, err
 	default:
 		end := start
-		for end < len(source) && source[end] != ';' && source[end] != '\n' && source[end] != '\r' {
+		for end < len(source) && source[end] != ';' && source[end] != '\n' && source[end] != '\r' && source[end] != '<' {
 			end++
 		}
 		return strings.TrimSpace(source[start:end]), nil

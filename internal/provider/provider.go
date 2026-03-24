@@ -135,6 +135,8 @@ func (p *tplinkEasySmartProvider) Resources(_ context.Context) []func() resource
 		providerresources.NewVLAN8021QResource,
 		providerresources.NewPortPVIDResource,
 		providerresources.NewPortSettingResource,
+		providerresources.NewIGMPSnoopingResource,
+		providerresources.NewLAGResource,
 		providerresources.NewQoSModeResource,
 		providerresources.NewPortQoSPriorityResource,
 		providerresources.NewPortBandwidthControlResource,

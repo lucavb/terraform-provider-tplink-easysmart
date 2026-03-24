@@ -54,6 +54,32 @@ type QoSMode struct {
 	Mode int
 }
 
+type IGMPSnooping struct {
+	ID                       string
+	Enabled                  bool
+	ReportMessageSuppression bool
+	Groups                   []IGMPGroup
+}
+
+type IGMPGroup struct {
+	IPAddress string
+	VLANID    int
+	Ports     []int
+	LAGGroups []int
+}
+
+type LAGInfo struct {
+	MaxGroups     int
+	PortCount     int
+	PortsPerGroup int
+	Groups        []LAGGroup
+}
+
+type LAGGroup struct {
+	GroupID int
+	Ports   []int
+}
+
 type PortQoSPriority struct {
 	PortID     int
 	Priority   int

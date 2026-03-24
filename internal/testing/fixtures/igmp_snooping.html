@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<script>
+var igmp_ds = {
+state:1,
+suppressionState:0,
+count:0,
+ipStr:[
+
+],
+vlanStr:[
+
+],
+portStr:[
+
+],
+lagMbrs:[
+0x0,0x0
+]
+};var tip = "";
+</script>
+ <head> <script>document.write(top.Abbrev)</script> <script type=text/javascript>function igmpStateInit(){$id("igmpEn").checked=!!igmp_ds.state,$id("igmpDis").checked=!igmp_ds.state}function igmpReportMsgSuppressionInit(){$id("reportSuEn").checked=!!igmp_ds.suppressionState,$id("reportSuDis").checked=!igmp_ds.suppressionState}incMeta(),incCss("main.css"),incCss("help.css"),incJs("tips.js"),incJs("ui.js"),incJs("help.js");var IgmpUtil={ipToStr:function(i){var s,t=parseInt(i);return s=(4278190080&t)>>>24,s+=".",s+=(16711680&t)>>>16,s+=".",s+=(65280&t)>>>8,s+=".",s+=255&t},pbmToStr:function(i){for(var s="",t=parseInt(i),n=0,r=0;r<32;++r)if(t&1<<r){for(s+=r+1,n=r;t&1<<r+1;)r++;n!=r&&(s+="-"+(r+1)),s+=","}return","==s.charAt(s.length-1)&&(s=s.substr(0,s.length-1)),s},upbmToStr:function(i,s){var t=parseInt(i),n=0,r="",e="",p="";for(idx in s)t&s[idx]&&(t&=~s[idx],n|=1<<idx);for(var c=0;c<32;++c)n&1<<c&&(e+=p+"LAG"+(c+1),p=",");return""!=(r=this.pbmToStr(""+t))&&(r=p+r),e+r}}</script> </head> <body> <div id=div_tip_mask class=TIP_MASK> <div id=div_tip_svr class=TIP><span id=sp_tip_svr class=TIP_CONTENT></span></div> </div> <fieldset> <legend>IGMP Snooping</legend> <div id=div_sec_title> <form action=igmpSnooping.cgi enctype=multipart/form-data> <td width=80%> <table class=FRAMEWORK> <tr> <td class=FRAMEWORK_LEFT> <span>IGMP Snooping:</span> </td> <td> <input name=igmp_mode id=igmpEn type=radio value=1 class=NORMAL> <span class=NORMAL>Enable</span> </td> <td class=SBLANK></td> <td> <input name=igmp_mode id=igmpDis type=radio value=0 class=NORMAL checked> <span class=NORMAL>Disable</span> </td> </tr> </table> <script type=text/javascript>igmpStateInit()</script> </td> <table width=100%> <td width=80%> <table class=FRAMEWORK> <tr> <td class=FRAMEWORK_LEFT> <span>Report Message Suppression:</span> </td> <td> <input name=reportSu_mode id=reportSuEn type=radio value=1 class=NORMAL> <span class=NORMAL>Enable</span> </td> <td class=SBLANK></td> <td> <input name=reportSu_mode id=reportSuDis type=radio value=0 class=NORMAL checked> <span class=NORMAL>Disable</span> </td> </tr> </table> <script type=text/javascript>igmpReportMsgSuppressionInit()</script> </td> <td class=BLANK valign=middle> <table class=FRAMEWORK> <tr> <td class=BTN_WRAPPER> <a class=BTN> <input class=BTN_NORMAL_BTN type=submit value=Apply name=Apply> </a> </td> <td class=BTN_WRAPPER> <a class=BTN> <input type=button class=BTN_NORMAL_BTN value=Help name=help onclick='doShowHelp("div_sec_title","div_help_lan_svr","IgmpSnoopingHelpRpm.htm")'> </a> </td> </tr> </table> </td> </table> </form> </div> <script type=text/javascript>ShowHelp('<span class="HELP_TITLE" id="t_help_title">IGMP Snooping</span> ')</script> <div> <table class=BORDER width=100%> <tbody> <tr class=TABLE_HEAD> <td class=TD_FIRST_ROW width=40%>IP Address</td> <td class=TD_FIRST_ROW width=25%>VLAN ID</td> <td class=TD_FIRST_ROW width=35%>Ports</td> </tr> <script type=text/javascript>for(var i=0;i<igmp_ds.count;i++)docW("<tr>"),docW("<td>"+IgmpUtil.ipToStr(igmp_ds.ipStr[i])+"</td>"),docW("<td>"+igmp_ds.vlanStr[i]+"</td>"),docW("<td>"+IgmpUtil.upbmToStr(igmp_ds.portStr[i],igmp_ds.lagMbrs)+"</td>"),docW("</tr>")</script> </tbody> </table> </div> </fieldset>   <script>window.onload=function(){new Drag("div_help_lan_svr","div_help_lan_svr")},""!=tip&&(ShowTips("sp_tip_svr",tip),startDownScroll("div_tip_svr"))</script> 

@@ -23,6 +23,8 @@ type Client interface {
 	GetManagementIP(context.Context) (model.ManagementIP, error)
 	GetVLANs(context.Context) (model.VLANTable, error)
 	GetPVIDs(context.Context) ([]model.PortPVID, error)
+	GetIGMPSnooping(context.Context) (model.IGMPSnooping, error)
+	GetLAGs(context.Context) (model.LAGInfo, error)
 	GetQoSMode(context.Context) (model.QoSMode, error)
 	GetPortQoSPriorities(context.Context) ([]model.PortQoSPriority, error)
 	GetPortBandwidthControls(context.Context) ([]model.PortBandwidthControl, error)
@@ -31,6 +33,9 @@ type Client interface {
 	DeleteVLAN(context.Context, int) error
 	SetPortPVID(context.Context, int, int) error
 	UpdatePortSettings(context.Context, int, *bool, *int, *int) error
+	UpdateIGMPSnooping(context.Context, bool, bool) error
+	UpsertLAG(context.Context, int, []int) error
+	DeleteLAG(context.Context, int) error
 	UpdateQoSMode(context.Context, int) error
 	SetPortQoSPriority(context.Context, int, int) error
 	SetPortBandwidthControl(context.Context, int, int, int) error

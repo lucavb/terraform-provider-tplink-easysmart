@@ -6,6 +6,8 @@ This provider is intentionally scoped as an MVP around the safest, best-understo
 
 - system information
 - per-port settings
+- IGMP snooping
+- static LAG groups
 - 802.1Q VLAN inventory and management
 - per-port PVID inventory and management
 
@@ -57,6 +59,8 @@ Arguments:
 - `tplinkeasysmart_vlan_8021q`
 - `tplinkeasysmart_port_pvid`
 - `tplinkeasysmart_port_setting`
+- `tplinkeasysmart_igmp_snooping`
+- `tplinkeasysmart_lag`
 - `tplinkeasysmart_qos_mode`
 - `tplinkeasysmart_port_qos_priority`
 - `tplinkeasysmart_port_bandwidth_control`

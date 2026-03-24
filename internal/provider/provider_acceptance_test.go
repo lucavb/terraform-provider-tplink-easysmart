@@ -316,6 +316,123 @@ resource "tplinkeasysmart_port_setting" "test" {
 	})
 }
 
+func TestAccIGMPSnoopingResource_basic(t *testing.T) {
+	host := os.Getenv("TPLINK_EASYSMART_HOST")
+	username := os.Getenv("TPLINK_EASYSMART_USERNAME")
+	password := os.Getenv("TPLINK_EASYSMART_PASSWORD")
+	enabled := os.Getenv("TPLINK_EASYSMART_TEST_IGMP_ENABLED")
+	suppressionPrimary := os.Getenv("TPLINK_EASYSMART_TEST_IGMP_REPORT_SUPPRESSION_PRIMARY")
+	suppressionSecondary := os.Getenv("TPLINK_EASYSMART_TEST_IGMP_REPORT_SUPPRESSION_SECONDARY")
+	if host == "" || username == "" || password == "" || enabled == "" || suppressionPrimary == "" || suppressionSecondary == "" {
+		t.Skip("set TPLINK_EASYSMART_TEST_IGMP_ENABLED, TPLINK_EASYSMART_TEST_IGMP_REPORT_SUPPRESSION_PRIMARY, and TPLINK_EASYSMART_TEST_IGMP_REPORT_SUPPRESSION_SECONDARY to run IGMP snooping acceptance tests")
+	}
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		PreCheck: func() {
+			testAccPreCheck(t)
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderConfig(host, username, password) + fmt.Sprintf(`
+resource "tplinkeasysmart_igmp_snooping" "test" {
+  enabled                    = %s
+  report_message_suppression = %s
+}
+`, enabled, suppressionPrimary),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("tplinkeasysmart_igmp_snooping.test", "enabled", enabled),
+					resource.TestCheckResourceAttr("tplinkeasysmart_igmp_snooping.test", "report_message_suppression", suppressionPrimary),
+				),
+			},
+			{
+				Config: testAccProviderConfig(host, username, password) + fmt.Sprintf(`
+resource "tplinkeasysmart_igmp_snooping" "test" {
+  enabled                    = %s
+  report_message_suppression = %s
+}
+`, enabled, suppressionSecondary),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("tplinkeasysmart_igmp_snooping.test", "report_message_suppression", suppressionSecondary),
+				),
+			},
+			{
+				ResourceName:      "tplinkeasysmart_igmp_snooping.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateId:     "igmp_snooping",
+			},
+			{
+				Config: testAccProviderConfig(host, username, password) + fmt.Sprintf(`
+resource "tplinkeasysmart_igmp_snooping" "test" {
+  enabled                    = %s
+  report_message_suppression = %s
+}
+`, enabled, suppressionSecondary),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func TestAccLAGResource_basic(t *testing.T) {
+	host := os.Getenv("TPLINK_EASYSMART_HOST")
+	username := os.Getenv("TPLINK_EASYSMART_USERNAME")
+	password := os.Getenv("TPLINK_EASYSMART_PASSWORD")
+	groupID := os.Getenv("TPLINK_EASYSMART_TEST_LAG_GROUP")
+	portsPrimary := os.Getenv("TPLINK_EASYSMART_TEST_LAG_PORTS_PRIMARY")
+	portsSecondary := os.Getenv("TPLINK_EASYSMART_TEST_LAG_PORTS_SECONDARY")
+	if host == "" || username == "" || password == "" || groupID == "" || portsPrimary == "" || portsSecondary == "" {
+		t.Skip("set TPLINK_EASYSMART_TEST_LAG_GROUP, TPLINK_EASYSMART_TEST_LAG_PORTS_PRIMARY, and TPLINK_EASYSMART_TEST_LAG_PORTS_SECONDARY to run LAG acceptance tests")
+	}
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		PreCheck: func() {
+			testAccPreCheck(t)
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderConfig(host, username, password) + fmt.Sprintf(`
+resource "tplinkeasysmart_lag" "test" {
+  group_id = %s
+  ports    = [%s]
+}
+`, groupID, portsPrimary),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("tplinkeasysmart_lag.test", "group_id", groupID),
+					resource.TestCheckResourceAttrSet("tplinkeasysmart_lag.test", "id"),
+				),
+			},
+			{
+				Config: testAccProviderConfig(host, username, password) + fmt.Sprintf(`
+resource "tplinkeasysmart_lag" "test" {
+  group_id = %s
+  ports    = [%s]
+}
+`, groupID, portsSecondary),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("tplinkeasysmart_lag.test", "group_id", groupID),
+				),
+			},
+			{
+				ResourceName:      "tplinkeasysmart_lag.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccProviderConfig(host, username, password) + fmt.Sprintf(`
+resource "tplinkeasysmart_lag" "test" {
+  group_id = %s
+  ports    = [%s]
+}
+`, groupID, portsSecondary),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
 func testAccPreCheck(t *testing.T) {
 	t.Helper()
 
