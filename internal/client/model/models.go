@@ -48,3 +48,29 @@ type PortPVID struct {
 	PortID int
 	PVID   int
 }
+
+type QoSMode struct {
+	ID   string
+	Mode int
+}
+
+type PortQoSPriority struct {
+	PortID     int
+	Priority   int
+	TrunkGroup int
+}
+
+type PortBandwidthControl struct {
+	PortID          int
+	IngressRateKbps int
+	EgressRateKbps  int
+	TrunkGroup      int
+}
+
+type PortStormControl struct {
+	PortID     int
+	Enabled    bool
+	RateKbps   int
+	StormTypes []int
+	TrunkGroup int
+}

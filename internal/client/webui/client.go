@@ -323,6 +323,17 @@ func (c *Client) doProtectedQuery(ctx context.Context, path string, query url.Va
 	return body, nil
 }
 
+func (c *Client) doProtectedForm(ctx context.Context, path string, form url.Values) (string, error) {
+	body, err := c.doForm(ctx, path, form)
+	if err != nil {
+		return "", err
+	}
+	if session.IsLoginPage(body) {
+		return "", client.ErrPageReturnedLogin
+	}
+	return body, nil
+}
+
 func (c *Client) doForm(ctx context.Context, path string, form url.Values) (string, error) {
 	return c.doRequest(ctx, http.MethodPost, path, "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
 }

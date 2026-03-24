@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<script>
+var selState = new Array(0,0,0,0,0,0,0,0);
+var trunk_info = new Array("", " (LAG1)", " (LAG2)");
+var portNumber = 8;
+var bcInfo = new Array(
+0,0,0,
+0,0,0,
+0,0,0,
+0,0,0,
+0,0,0,
+0,0,0,
+0,0,0,
+0,0,0,
+0);
+var tip = "";
+</script>
+<head> <script>document.write(top.Abbrev)</script> <script type=text/javascript>incCss("main.css"),incCss("help.css"),incJs("ui.js"),incJs("help.js"),incJs("tips.js"),incJs("QosBandWidthControlRpm.js")</script> </head> <body> <div id=div_tip_mask class=TIP_MASK> <div id=div_tip_svr class=TIP><span id=sp_tip_svr class=TIP_CONTENT></span></div> </div> <fieldset> <legend>Bandwidth Control Setting</legend> <form name=qos_bandwidth_set method=post action=qos_bandwidth_set.cgi> <div id=div_sec_title> <table class=BORDER> <tr class=TABLE_HEAD> <td class=TD_FIRST_COL width=50px><b>Select</b></td> <td class=TD_FIRST_COL width=120px><b>Port</b></td> <td class=TD_FIRST_COL width=120px><b>Ingress Rate(Kbps)</b></td> <td class=TD_FIRST_COL width=120px><b>Egress Rate(Kbps)</b></td> </tr> <tr class=TABLE_HEAD> <td><input type=checkbox id=selAll name=selAll onclick=doSelAll()></td> <td></td> <td><input maxlength=7 name=igrRate id=igrRate size=8><br>(0-1000000)</td> <td><input maxlength=7 name=egrRate id=egrRate size=8><br>(0-1000000)</td> </tr> <script>var lagPort,ingRate,egrRate;for(i=1;i<=portNumber;i++)ingRate=bcInfo[3*(i-1)]?bcInfo[3*(i-1)]:"Unlimited",egrRate=bcInfo[3*(i-1)+1]?bcInfo[3*(i-1)+1]:"Unlimited",lagPort="Port "+i+trunk_info[bcInfo[3*(i-1)+2]],docW("<tr>"),docW("<td><input type=checkbox name=sel_"+i+" id=sel_"+i+' onClick="do_check('+i+');" value=1></td>'),docW("<td>"+lagPort+"</td>"),docW("<td>"+ingRate+"</td>"),docW("<td>"+egrRate+"</td>")</script> </table> <table> <tr> <td class=BTN_WRAPPER> <a class=BTN> <input type=submit value=Apply name=applay class=BTN_NORMAL_BTN onclick="return do_submit()"> </a> </td> <td class=BTN_WRAPPER> <a class=BTN> <input type=button class=BTN_NORMAL_BTN value=Help name=help onclick='doShowHelp("div_sec_title","div_help_lan_svr","QosBandWidthControlHelpRpm.htm")'> </a> </td> </tr> </table> </div> </form> <table class=BOTTOM_LINE> <tr><td class=BOTTOM_LINE> </tr> </table> </fieldset> <script>ShowHelp('<span class="HELP_TITLE" id="t_help_title">Bandwidth Control</span> ')</script>   <script>window.onload=function(){new Drag("div_help_lan_svr","div_help_lan_svr")},""!=tip&&(ShowTips("sp_tip_svr",tip),startDownScroll("div_tip_svr"))</script>

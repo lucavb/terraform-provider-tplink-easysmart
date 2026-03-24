@@ -57,6 +57,10 @@ Arguments:
 - `tplinkeasysmart_vlan_8021q`
 - `tplinkeasysmart_port_pvid`
 - `tplinkeasysmart_port_setting`
+- `tplinkeasysmart_qos_mode`
+- `tplinkeasysmart_port_qos_priority`
+- `tplinkeasysmart_port_bandwidth_control`
+- `tplinkeasysmart_port_storm_control`
 
 ## Supported Data Sources
 

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<script>
+var selState = new Array(0,0,0,0,0,0,0,0);
+var trunk_info = new Array("", " (LAG1)", " (LAG2)");
+var portNumber = 8;
+var scInfo = new Array(
+0,0,0,
+0,0,0,
+0,0,0,
+0,0,0,
+0,0,0,
+0,0,0,
+0,0,0,
+0,0,0,
+0);
+var tip = "";
+</script>
+<head> <script>document.write(top.Abbrev)</script> <script type=text/javascript>incCss("main.css"),incCss("help.css"),incJs("ui.js"),incJs("help.js"),incJs("tips.js"),incJs("QosStormControlRpm.js");var selStateType=[0,0,0]</script> </head> <body> <div id=div_tip_mask class=TIP_MASK> <div id=div_tip_svr class=TIP><span id=sp_tip_svr class=TIP_CONTENT></span></div> </div> <fieldset> <legend>Storm Control Setting</legend> <form name=qos_storm_set method=post action=qos_storm_set.cgi> <div id=div_sec_title> <table class=BORDER> <tr class=TABLE_HEAD> <td class=TD_FIRST_COL width=50px><b>Select</b></td> <td class=TD_FIRST_COL width=200px><b>Port</b></td> <td class=TD_FIRST_COL width=100px><b>Status</b></td> <td class=TD_FIRST_COL width=200px><b>Total Rate(Kbit/sec)</b></td> <td class=TD_FIRST_COL width=250px><b>Included Storm Type</b></td> </tr> <tr class=TABLE_HEAD> <td><input type=checkbox id=selAll name=selAll onclick=doSelAll()></td> <td></td> <td> <select name=state onchange=set_rate_limit_state()> <option value=0>Disable</option> <option value=1>Enable</option> </select> </td> <td><input maxlength=7 name=rate id=rate size=8><br>(1-1000000)</td> <td> <select name=stormType id=typeSel multiple style=height:54px onclick=stormTypeSel(event)> <option value=1>UL-Frame&nbsp;&nbsp;&nbsp;&nbsp;</option> <option value=2>Multicast&nbsp;&nbsp;&nbsp;&nbsp;</option> <option value=4>Broadcast&nbsp;&nbsp;&nbsp;&nbsp;</option> </select> </td> </tr> <script type=text/javascript>var lagPort,rate,typeget,typeStr,enable;for(i=1;i<=portNumber;i++)lagPort="Port "+i+trunk_info[scInfo[3*(i-1)+2]],rate=scInfo[3*(i-1)],typeget=scInfo[3*(i-1)+1],typeStr="",0==rate||0==typeget?(rate="Unlimited",typeget=0,typeStr="",enable="Disable"):(rate+="",enable="Enable"),1&typeget&&(typeStr+="UL-Frame "),2&typeget&&(typeStr+="Multicast "),4&typeget&&(typeStr+="Broadcast "),docW("<tr>"),docW("<td><input type=checkbox name=sel_"+i+" id=sel_"+i+' onClick="do_check('+i+');" value=1></td>'),docW("<td>"+lagPort+"</td>"),docW("<td>"+enable+"</td>"),docW("<td>"+rate+"</td>"),docW("<td>"+typeStr+"</td>"),docW("</tr>");init_port()</script> </table> <table> <tr> <td class=BTN_WRAPPER> <a class=BTN> <input type=submit value=Apply name=applay class=BTN_NORMAL_BTN onclick="return do_submit()"> </a> </td> <td class=BTN_WRAPPER> <a class=BTN> <input type=button class=BTN_NORMAL_BTN value=Help name=help onclick='doShowHelp("div_sec_title","div_help_lan_svr","QosStormControlHelpRpm.htm")'> </a> </td> </tr> </table> </div> </form> <table class=BOTTOM_LINE> <tr><td class=BOTTOM_LINE> </tr> </table> </fieldset> <script>ShowHelp('<span class="HELP_TITLE" id="t_help_title">Storm Control</span> ')</script>   <script>window.onload=function(){new Drag("div_help_lan_svr","div_help_lan_svr")},""!=tip&&(ShowTips("sp_tip_svr",tip),startDownScroll("div_tip_svr"))</script>
