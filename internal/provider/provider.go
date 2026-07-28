@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/http/cookiejar"
 	"strings"
 	"time"
 
@@ -103,7 +104,14 @@ func (p *tplinkEasySmartProvider) Configure(ctx context.Context, req provider.Co
 	}
 
 	baseURL := buildBaseURL(config.Host.ValueString(), insecureHTTP)
-	httpClient := &http.Client{Timeout: timeout}
+	httpClient, err := newHTTPClient(timeout)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to create switch session store",
+			fmt.Sprintf("Failed to create HTTP client: %s", err),
+		)
+		return
+	}
 
 	switchClient := webui.New(client.Config{
 		BaseURL:    baseURL,
@@ -128,6 +136,18 @@ func (p *tplinkEasySmartProvider) Configure(ctx context.Context, req provider.Co
 	data := &providerdata.Data{SwitchClient: switchClient}
 	resp.DataSourceData = data
 	resp.ResourceData = data
+}
+
+// newHTTPClient preserves the authentication cookie issued by the switch Web UI.
+// Easy Smart switches authenticate with a form POST and expect every later
+// request to carry that session cookie.
+func newHTTPClient(timeout time.Duration) (*http.Client, error) {
+	cookieJar, err := cookiejar.New(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return &http.Client{Timeout: timeout, Jar: cookieJar}, nil
 }
 
 func (p *tplinkEasySmartProvider) Resources(_ context.Context) []func() resource.Resource {
