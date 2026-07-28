@@ -15,6 +15,15 @@ import (
 )
 
 func configureClient(req resource.ConfigureRequest, resp *resource.ConfigureResponse) client.Client {
+	providerData := configureProviderData(req, resp)
+	if providerData == nil {
+		return nil
+	}
+
+	return providerData.Client()
+}
+
+func configureProviderData(req resource.ConfigureRequest, resp *resource.ConfigureResponse) *providerdata.Data {
 	if req.ProviderData == nil {
 		return nil
 	}
@@ -25,7 +34,7 @@ func configureClient(req resource.ConfigureRequest, resp *resource.ConfigureResp
 		return nil
 	}
 
-	return providerData.Client()
+	return providerData
 }
 
 func int64SetFromInts(ctx context.Context, values []int) (types.Set, diag.Diagnostics) {

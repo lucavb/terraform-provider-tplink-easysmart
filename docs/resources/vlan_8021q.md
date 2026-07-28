@@ -26,7 +26,7 @@ resource "tplinkeasysmart_vlan_8021q" "users" {
 
 ### Required
 
-- `name` (String) VLAN display name.
+- `name` (String) VLAN display name (1-10 bytes; longer names are truncated by the switch).
 - `tagged_ports` (Set of Number) Ports that should be tagged members of the VLAN.
 - `untagged_ports` (Set of Number) Ports that should be untagged members of the VLAN.
 - `vlan_id` (Number) VLAN ID in the range 1-4094.
