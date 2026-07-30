@@ -106,6 +106,8 @@ This provider has been developed against the TP-Link Easy Smart web UI model and
 
 - Avoid managing uplink or management ports until you have proven a no-op plan on your switch.
 - Prefer importing or reconciling live state before making the first write.
+- VLAN display names are limited to 10 bytes by the Easy Smart web UI.
+- VLAN writes are serialized per configured provider instance, but switch updates are not transactional and separate aliases or processes are not coordinated. Use `lifecycle { prevent_destroy = true }` for management-path VLANs.
 - Do not assume unimplemented UI features are safe to automate yet.
 
 ## Local Examples

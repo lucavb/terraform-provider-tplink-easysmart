@@ -3,6 +3,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -15,13 +16,15 @@ import (
 )
 
 var (
-	_ resource.Resource                = (*vlan8021qResource)(nil)
-	_ resource.ResourceWithConfigure   = (*vlan8021qResource)(nil)
-	_ resource.ResourceWithImportState = (*vlan8021qResource)(nil)
+	_ resource.Resource                   = (*vlan8021qResource)(nil)
+	_ resource.ResourceWithConfigure      = (*vlan8021qResource)(nil)
+	_ resource.ResourceWithImportState    = (*vlan8021qResource)(nil)
+	_ resource.ResourceWithValidateConfig = (*vlan8021qResource)(nil)
 )
 
 type vlan8021qResource struct {
-	client client.Client
+	client     client.Client
+	mutationMu *sync.Mutex
 }
 
 type vlan8021qResourceModel struct {
@@ -31,6 +34,8 @@ type vlan8021qResourceModel struct {
 	TaggedPorts   types.Set    `tfsdk:"tagged_ports"`
 	UntaggedPorts types.Set    `tfsdk:"untagged_ports"`
 }
+
+const maxVLANNameBytes = 10
 
 func NewVLAN8021QResource() resource.Resource {
 	return &vlan8021qResource{}
@@ -54,7 +59,7 @@ func (r *vlan8021qResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 			},
 			"name": resourceschema.StringAttribute{
 				Required:    true,
-				Description: "VLAN display name.",
+				Description: "VLAN display name (1-10 bytes; longer names are truncated by the switch).",
 			},
 			"tagged_ports": resourceschema.SetAttribute{
 				Required:    true,
@@ -71,10 +76,31 @@ func (r *vlan8021qResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 }
 
 func (r *vlan8021qResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = configureClient(req, resp)
+	providerData := configureProviderData(req, resp)
+	if providerData == nil {
+		return
+	}
+
+	r.client = providerData.Client()
+	r.mutationMu = providerData.VLANMutationLock()
+}
+
+func (r *vlan8021qResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var config vlan8021qResourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() || config.Name.IsNull() || config.Name.IsUnknown() {
+		return
+	}
+
+	if err := validateVLANName(config.Name.ValueString()); err != nil {
+		resp.Diagnostics.AddAttributeError(path.Root("name"), "Invalid VLAN name", err.Error())
+	}
 }
 
 func (r *vlan8021qResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	r.lockMutation()
+	defer r.unlockMutation()
+
 	var plan vlan8021qResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -90,6 +116,9 @@ func (r *vlan8021qResource) Create(ctx context.Context, req resource.CreateReque
 }
 
 func (r *vlan8021qResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	r.lockMutation()
+	defer r.unlockMutation()
+
 	var state vlan8021qResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -110,6 +139,9 @@ func (r *vlan8021qResource) Read(ctx context.Context, req resource.ReadRequest, 
 }
 
 func (r *vlan8021qResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	r.lockMutation()
+	defer r.unlockMutation()
+
 	var plan vlan8021qResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -125,6 +157,9 @@ func (r *vlan8021qResource) Update(ctx context.Context, req resource.UpdateReque
 }
 
 func (r *vlan8021qResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	r.lockMutation()
+	defer r.unlockMutation()
+
 	var state vlan8021qResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -162,6 +197,11 @@ func (r *vlan8021qResource) apply(ctx context.Context, plan vlan8021qResourceMod
 		return vlan8021qResourceModel{}, false
 	}
 
+	if err := validateVLANName(plan.Name.ValueString()); err != nil {
+		diags.AddAttributeError(path.Root("name"), "Invalid VLAN name", err.Error())
+		return vlan8021qResourceModel{}, false
+	}
+
 	taggedPorts, taggedDiags := intsFromSet(ctx, plan.TaggedPorts)
 	diags.Append(taggedDiags...)
 	untaggedPorts, untaggedDiags := intsFromSet(ctx, plan.UntaggedPorts)
@@ -191,6 +231,28 @@ func (r *vlan8021qResource) apply(ctx context.Context, plan vlan8021qResourceMod
 	}
 
 	return refreshed, true
+}
+
+func (r *vlan8021qResource) lockMutation() {
+	if r.mutationMu != nil {
+		r.mutationMu.Lock()
+	}
+}
+
+func (r *vlan8021qResource) unlockMutation() {
+	if r.mutationMu != nil {
+		r.mutationMu.Unlock()
+	}
+}
+
+func validateVLANName(name string) error {
+	if len(name) == 0 {
+		return fmt.Errorf("VLAN name must not be empty")
+	}
+	if len(name) > maxVLANNameBytes {
+		return fmt.Errorf("VLAN name must contain at most %d bytes; the switch truncates longer names and Terraform would report an inconsistent result", maxVLANNameBytes)
+	}
+	return nil
 }
 
 func (r *vlan8021qResource) readVLAN(ctx context.Context, vlanID int64) (vlan8021qResourceModel, bool, diag.Diagnostics) {
