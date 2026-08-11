@@ -351,7 +351,7 @@ func (c *Client) doRequest(ctx context.Context, method string, path string, cont
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	raw, err := io.ReadAll(resp.Body)
 	if err != nil {
