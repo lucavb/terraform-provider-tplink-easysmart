@@ -107,8 +107,8 @@ func (p *tplinkEasySmartProvider) Configure(ctx context.Context, req provider.Co
 	httpClient, err := newHTTPClient(timeout)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Unable to create switch session store",
-			fmt.Sprintf("Failed to create HTTP client: %s", err),
+			"Unable to create HTTP client",
+			fmt.Sprintf("Failed to create session cookie store: %s", err),
 		)
 		return
 	}

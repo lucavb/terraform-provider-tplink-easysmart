@@ -13,6 +13,74 @@ import (
 	"github.com/lucavb/terraform-provider-tplink-easysmart/internal/testutil"
 )
 
+func TestProtectedRequestRequiresSessionCookie(t *testing.T) {
+	loginSuccess := testutil.ReadFixture(t, filepath.Join("internal", "testing", "fixtures", "login_success.html"))
+	systemInfo := testutil.ReadFixture(t, filepath.Join("internal", "testing", "fixtures", "system_info.html"))
+	loginPage := testutil.ReadFixture(t, filepath.Join("internal", "testing", "fixtures", "login_failure.html"))
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/logon.cgi":
+			http.SetCookie(w, &http.Cookie{Name: "session", Value: "active", Path: "/"})
+			_, _ = w.Write([]byte(loginSuccess))
+		case "/SystemInfoRpm.htm":
+			if _, err := r.Cookie("session"); err != nil {
+				_, _ = w.Write([]byte(loginPage))
+				return
+			}
+			_, _ = w.Write([]byte(systemInfo))
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	t.Run("default client retains session cookie", func(t *testing.T) {
+		switchClient := webui.New(client.Config{
+			BaseURL:  server.URL,
+			Username: "admin",
+			Password: "password",
+			Timeout:  2 * time.Second,
+		})
+
+		ctx := context.Background()
+		if err := switchClient.Authenticate(ctx); err != nil {
+			t.Fatalf("Authenticate() error = %v", err)
+		}
+
+		info, err := switchClient.GetSystemInfo(ctx)
+		if err != nil {
+			t.Fatalf("GetSystemInfo() error = %v", err)
+		}
+		if info.Description != "TL-SG108PE" {
+			t.Fatalf("unexpected model = %q", info.Description)
+		}
+	})
+
+	t.Run("jar-less provided client gets session cookie support", func(t *testing.T) {
+		switchClient := webui.New(client.Config{
+			BaseURL:    server.URL,
+			Username:   "admin",
+			Password:   "password",
+			Timeout:    2 * time.Second,
+			HTTPClient: &http.Client{Timeout: 2 * time.Second},
+		})
+
+		ctx := context.Background()
+		if err := switchClient.Authenticate(ctx); err != nil {
+			t.Fatalf("Authenticate() error = %v", err)
+		}
+
+		info, err := switchClient.GetSystemInfo(ctx)
+		if err != nil {
+			t.Fatalf("GetSystemInfo() error = %v", err)
+		}
+		if info.Description != "TL-SG108PE" {
+			t.Fatalf("unexpected model = %q", info.Description)
+		}
+	})
+}
+
 func TestAuthenticateAndReadSystemInfo(t *testing.T) {
 	loginSuccess := testutil.ReadFixture(t, filepath.Join("internal", "testing", "fixtures", "login_success.html"))
 	systemInfo := testutil.ReadFixture(t, filepath.Join("internal", "testing", "fixtures", "system_info.html"))

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/cookiejar"
 	"net/url"
 	"strings"
 	"time"
@@ -26,13 +27,7 @@ type Client struct {
 }
 
 func New(cfg client.Config) *Client {
-	httpClient := cfg.HTTPClient
-	if httpClient == nil {
-		httpClient = &http.Client{Timeout: cfg.Timeout}
-	}
-	if httpClient.Timeout == 0 {
-		httpClient.Timeout = 10 * time.Second
-	}
+	httpClient := ensureSessionHTTPClient(cfg.HTTPClient, cfg.Timeout)
 
 	return &Client{
 		baseURL:    strings.TrimRight(cfg.BaseURL, "/"),
@@ -40,6 +35,53 @@ func New(cfg client.Config) *Client {
 		password:   cfg.Password,
 		httpClient: httpClient,
 	}
+}
+
+// ensureSessionHTTPClient returns an HTTP client that preserves the session
+// cookie issued by the switch Web UI during login.
+func ensureSessionHTTPClient(httpClient *http.Client, timeout time.Duration) *http.Client {
+	if httpClient == nil {
+		return newSessionHTTPClient(timeout)
+	}
+
+	if httpClient.Jar != nil {
+		if httpClient.Timeout == 0 {
+			cloned := *httpClient
+			cloned.Timeout = defaultHTTPTimeout(timeout)
+			return &cloned
+		}
+		return httpClient
+	}
+
+	cloned := *httpClient
+	cloned.Jar = newCookieJar()
+	cloned.Timeout = defaultHTTPTimeout(cloned.Timeout)
+	if cloned.Timeout == 0 {
+		cloned.Timeout = defaultHTTPTimeout(timeout)
+	}
+	return &cloned
+}
+
+func newSessionHTTPClient(timeout time.Duration) *http.Client {
+	return &http.Client{
+		Timeout: defaultHTTPTimeout(timeout),
+		Jar:     newCookieJar(),
+	}
+}
+
+func newCookieJar() http.CookieJar {
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		panic(fmt.Sprintf("cookiejar.New: %v", err))
+	}
+	return jar
+}
+
+func defaultHTTPTimeout(timeout time.Duration) time.Duration {
+	if timeout == 0 {
+		return 10 * time.Second
+	}
+	return timeout
 }
 
 func (c *Client) Authenticate(ctx context.Context) error {
